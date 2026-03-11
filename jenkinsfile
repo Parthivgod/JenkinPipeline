@@ -1,0 +1,48 @@
+pipeline {
+    agent any 
+
+    stages {
+        stage('Pull from Git') {
+            steps {
+                // 'checkout scm' automatically pulls from the repo configured in the job
+                checkout scm 
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+                // Replace with your build command (e.g., sh 'mvn clean compile' or sh 'make')
+                sh 'echo "Build complete"' 
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                // Replace with your test command (e.g., sh 'mvn test' or sh './run_tests.sh')
+                sh 'echo "Tests passed"'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying the application...'
+                // Replace with your deployment script or command
+                sh 'echo "Deployment successful"'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution finished.'
+        }
+        success {
+            echo 'Build, Test, and Deploy were successful!'
+        }
+        failure {
+            echo 'Pipeline failed. Check console output for details.'
+        }
+    }
+}
