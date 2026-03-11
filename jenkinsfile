@@ -1,53 +1,51 @@
 pipeline {
     agent any
-
-    tools {
-        // Automatically install/use Maven & JDK defined in 'Global Tool Configuration'
-        maven 'Maven 3.3.9' 
-        jdk 'jdk8'
-    }
-
+ 
     stages {
         stage('Pull from Git') {
             steps {
-                // Declarative pipelines automatically checkout SCM, 
-                // but you can explicitly call it using the git step.
-                git branch: 'main', url: 'https://github.com'
+                echo 'Cleaning workspace and pulling latest code...'
+                // Jenkins usually handles the checkout if configured in the job, 
+                // but this step ensures it's explicitly tracked.
+                checkout scm
             }
         }
-
+ 
         stage('Build') {
             steps {
-                echo 'Starting Build...'
-                // If using the Pipeline Maven Plugin, use withMaven instead of sh
-                withMaven(maven: 'Maven 3.3.9') {
-                    // This internal step invokes maven without a manual 'sh'
-                    // Alternatively, on Windows use: bat 'mvn clean package'
-                    echo 'Building via Maven Plugin...'
-                }
+                echo 'Executing Build Script...'
+                bat 'Build.bat'
             }
         }
-
+ 
         stage('Test') {
             steps {
-                echo 'Running Tests...'
-                // For Windows agents, use bat instead of sh
-                bat 'mvn test' 
+                echo 'Executing Test Script...'
+                bat 'Test.bat'
             }
         }
-
+ 
+        stage('Quality Check') {
+            steps {
+                echo 'Executing Quality Analysis...'
+                bat 'Quality.bat'
+            }
+        }
+ 
         stage('Deploy') {
             steps {
-                echo 'Deploying application...'
-                // Use built-in archiveArtifacts to "deploy" to Jenkins itself
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                echo 'Executing Deployment Script...'
+                bat 'Deploy.bat'
             }
         }
     }
-
+ 
     post {
-        always {
-            echo 'Pipeline finished.'
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the batch script logs.'
         }
     }
 }
