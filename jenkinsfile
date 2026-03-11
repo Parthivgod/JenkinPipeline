@@ -1,48 +1,53 @@
 pipeline {
-    agent any 
+    agent any
+
+    tools {
+        // Automatically install/use Maven & JDK defined in 'Global Tool Configuration'
+        maven 'Maven 3.3.9' 
+        jdk 'jdk8'
+    }
 
     stages {
         stage('Pull from Git') {
             steps {
-                // 'checkout scm' automatically pulls from the repo configured in the job
-                checkout scm 
+                // Declarative pipelines automatically checkout SCM, 
+                // but you can explicitly call it using the git step.
+                git branch: 'main', url: 'https://github.com'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building the application...'
-                // Replace with your build command (e.g., sh 'mvn clean compile' or sh 'make')
-                sh 'echo "Build complete"' 
+                echo 'Starting Build...'
+                // If using the Pipeline Maven Plugin, use withMaven instead of sh
+                withMaven(maven: 'Maven 3.3.9') {
+                    // This internal step invokes maven without a manual 'sh'
+                    // Alternatively, on Windows use: bat 'mvn clean package'
+                    echo 'Building via Maven Plugin...'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                // Replace with your test command (e.g., sh 'mvn test' or sh './run_tests.sh')
-                sh 'echo "Tests passed"'
+                echo 'Running Tests...'
+                // For Windows agents, use bat instead of sh
+                bat 'mvn test' 
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying the application...'
-                // Replace with your deployment script or command
-                sh 'echo "Deployment successful"'
+                echo 'Deploying application...'
+                // Use built-in archiveArtifacts to "deploy" to Jenkins itself
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline execution finished.'
-        }
-        success {
-            echo 'Build, Test, and Deploy were successful!'
-        }
-        failure {
-            echo 'Pipeline failed. Check console output for details.'
+            echo 'Pipeline finished.'
         }
     }
 }
